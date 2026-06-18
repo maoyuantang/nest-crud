@@ -1,55 +1,59 @@
+// src/users/users.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { PrismaClient } from '@prisma/client';
+
+// 直接实例化，不用传任何参数
+const prisma = new PrismaClient();
 
 @Injectable()
 export class UsersService {
-  // 内存数据库
-  private users: User[] = [
-    { id: 1, name: '小明', email: 'xiaoming@example.com' },
-    { id: 2, name: '小红', email: 'xiaohong@example.com' },
-  ];
-  private nextId = 3;
-
-  // 创建用户
-  create(createUserDto: CreateUserDto): User {
-    const newUser = { id: this.nextId++, ...createUserDto };
-    this.users.push(newUser);
+  // ... 所有方法保持不变
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const newUser = await prisma.user.create({
+      data: createUserDto,
+    });
     return newUser;
   }
 
-  // 查询所有用户
-  findAll(): User[] {
-    return this.users;
+  async findAll(): Promise<User[]> {
+    return await prisma.user.findMany();
   }
 
-  // 查询单个用户
-  findOne(id: number): User {
-    const user = this.users.find(u => u.id === id);
+  async findOne(id: number): Promise<User> {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
     if (!user) {
       throw new NotFoundException(`用户 ID ${id} 不存在`);
     }
     return user;
   }
 
-  // 更新用户
-  update(id: number, updateUserDto: UpdateUserDto): User {
-    const userIndex = this.users.findIndex(u => u.id === id);
-    if (userIndex === -1) {
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
+    if (!existingUser) {
       throw new NotFoundException(`用户 ID ${id} 不存在`);
     }
-    this.users[userIndex] = { ...this.users[userIndex], ...updateUserDto };
-    return this.users[userIndex];
+    return await prisma.user.update({
+      where: { id },
+      data: updateUserDto,
+    });
   }
 
-  // 删除用户
-  remove(id: number): User {
-    const userIndex = this.users.findIndex(u => u.id === id);
-    if (userIndex === -1) {
+  async remove(id: number): Promise<User> {
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
+    if (!existingUser) {
       throw new NotFoundException(`用户 ID ${id} 不存在`);
     }
-    const deletedUser = this.users.splice(userIndex, 1)[0];
-    return deletedUser;
+    return await prisma.user.delete({
+      where: { id },
+    });
   }
 }
