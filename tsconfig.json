@@ -24,6 +24,8 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    // ... 你原有的其他配置
+    "types": ["node", "jest"] // 👈 确保 "jest" 在这个数组里
   }
 }
