@@ -5,12 +5,15 @@
 //  为什么 DTO 和 Entity 会有这个报错？
 // DTO (Data Transfer Object) 是用来传输数据的。它本身不负责创建对象，只是描述“数据长什么样”。它的属性值是在运行时由 NestJS 的 @Body() 装饰器自动填充的。TypeScript 在编译时不知道这个填充过程，所以会报警告。
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
+  @ApiProperty({ description: '用户姓名', example: '张三' })
   @IsNotEmpty({ message: '姓名不能为空' })
   @MinLength(2, { message: '姓名至少需要2个字符' })
   name!: string;
 
+  @ApiProperty({ description: '用户邮箱', example: 'zhangsan@example.com' })
   @IsEmail({}, { message: '请提供有效的邮箱地址' })
   @IsNotEmpty({ message: '邮箱不能为空' })
   email!: string;
