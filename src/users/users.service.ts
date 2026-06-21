@@ -3,27 +3,27 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { PrismaClient } from '@prisma/client';
-
-// 直接实例化，不用传任何参数
-const prisma = new PrismaClient();
+import { PrismaService } from '../prisma/prisma.service';// 之前我们直接在这里实例化 PrismaClient，现在改为通过依赖注入使用 PrismaService
 
 @Injectable()
 export class UsersService {
-  // ... 所有方法保持不变
+
+  constructor(
+    private readonly prisma: PrismaService,
+  ) { }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = await prisma.user.create({
+    return await this.prisma.user.create({
       data: createUserDto,
     });
-    return newUser;
   }
 
   async findAll(): Promise<User[]> {
-    return await prisma.user.findMany();
+    return await this.prisma.user.findMany();
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id },
     });
     if (!user) {
@@ -32,27 +32,30 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const existingUser = await prisma.user.findUnique({
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<User> {
+    const existingUser = await this.prisma.user.findUnique({
       where: { id },
     });
     if (!existingUser) {
       throw new NotFoundException(`用户 ID ${id} 不存在`);
     }
-    return await prisma.user.update({
+    return await this.prisma.user.update({
       where: { id },
       data: updateUserDto,
     });
   }
 
   async remove(id: number): Promise<User> {
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findUnique({
       where: { id },
     });
     if (!existingUser) {
       throw new NotFoundException(`用户 ID ${id} 不存在`);
     }
-    return await prisma.user.delete({
+    return await this.prisma.user.delete({
       where: { id },
     });
   }
