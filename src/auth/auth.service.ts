@@ -2,10 +2,15 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
+import { JwtService } from '@nestjs/jwt';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async register(dto: RegisterDto) {
     // 检查邮箱是否存在
@@ -34,5 +39,36 @@ export class AuthService {
     const { password, ...result } = user;
 
     return result;
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email: dto.email,
+
+        deletedAt: null,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('邮箱或密码错误');
+    }
+    const isMatch = await bcrypt.compare(dto.password, user.password);
+
+    if (!isMatch) {
+      throw new BadRequestException('邮箱或密码错误');
+    }
+
+    const token = await this.jwtService.signAsync({
+      sub: user.id,
+
+      email: user.email,
+
+      role: user.role,
+    });
+
+    return {
+      token,
+    };
   }
 }

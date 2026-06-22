@@ -1,15 +1,29 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
+import { Controller, Post, Body, Get, Req, UseGuards } from '@nestjs/common';
 
-@ApiTags('auth')
+import { AuthService } from './auth.service';
+
+import { LoginDto } from './dto/login.dto';
+
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+
+import { ApiBearerAuth } from '@nestjs/swagger';
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  @Post('login')
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
+  }
+
+  /**
+   * 当前登录用户
+   */
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  profile(@Req() req: any) {
+    return req.user;
   }
 }

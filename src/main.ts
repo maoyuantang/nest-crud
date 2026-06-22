@@ -8,8 +8,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);// 获取配置服务  
-  const port = configService.get<number>('PORT', 3000);// 读取 PORT 变量，默认 3000
+  const configService = app.get(ConfigService); // 获取配置服务
+  const port = configService.get<number>('PORT', 3000); // 读取 PORT 变量，默认 3000
 
   // 全局参数校验管道
   app.useGlobalPipes(
@@ -22,13 +22,25 @@ async function bootstrap() {
   // 全局注册统一异常过滤器
   app.useGlobalFilters(new AllExceptionsFilter());
   // 全局注册统一响应拦截器
-  app.useGlobalInterceptors( new ResponseInterceptor(), );
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   // --- Swagger 配置开始 ---
   const config = new DocumentBuilder()
     .setTitle('你的项目 API')
     .setDescription('这是你的后端服务 API 文档')
     .setVersion('1.0')
+
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
