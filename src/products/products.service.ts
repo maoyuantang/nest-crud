@@ -1,7 +1,6 @@
+import { PageResultDto } from '../common/dto/page-result.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
-
 import { PrismaService } from '../prisma/prisma.service';
-
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
@@ -47,22 +46,14 @@ export class ProductsService {
 
     const list = await this.prisma.product.findMany({
       where,
-
       skip: (page - 1) * pageSize,
-
       take: pageSize,
-
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return {
-      list,
-      total,
-      page,
-      pageSize,
-    };
+    return new PageResultDto(list, total, page, pageSize);
   }
 
   /**
