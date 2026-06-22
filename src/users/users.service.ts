@@ -21,6 +21,8 @@ export class UsersService {
     const { page = 1, pageSize = 10, keyword } = query;
 
     const where = {
+      deletedAt: null,
+
       ...(keyword && {
         name: {
           contains: keyword,
@@ -48,8 +50,11 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
     });
     if (!user) {
       throw new NotFoundException(`用户 ID ${id} 不存在`);
@@ -57,28 +62,24 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const existingUser = await this.prisma.user.findUnique({
+  async update(id: number, dto: UpdateUserDto): Promise<User> {
+    await this.findOne(id);
+
+    return this.prisma.user.update({
       where: { id },
-    });
-    if (!existingUser) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`);
-    }
-    return await this.prisma.user.update({
-      where: { id },
-      data: updateUserDto,
+      data: dto,
     });
   }
 
   async remove(id: number): Promise<User> {
-    const existingUser = await this.prisma.user.findUnique({
+    await this.findOne(id);
+
+    return await this.prisma.user.update({
       where: { id },
-    });
-    if (!existingUser) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`);
-    }
-    return await this.prisma.user.delete({
-      where: { id },
+
+      data: {
+        deletedAt: new Date(),
+      },
     });
   }
 }
