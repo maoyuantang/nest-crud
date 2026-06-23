@@ -8,6 +8,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from './decorators/roles.decorator';
+import { RolesGuard } from './guards/roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -20,11 +22,20 @@ export class AuthController {
 
   /**
    * 当前登录用户
+   * CurrentUser 装饰器获取当前登录用户信息,前端useUser
    */
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   profile(@CurrentUser() user: any) {
     return user;
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Get('admin')
+  admin() {
+    return 'admin area';
   }
 }
