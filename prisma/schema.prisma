@@ -8,30 +8,217 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  password    String
-  avatar      String?
-  role        String   @default("USER")
-  status      Int      @default(1)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  id            Int       @id @default(autoincrement())
+
+  name          String
+  // 真实姓名
+
+  nickname      String?
+  // 昵称
+
+  email         String    @unique
+  // 登录邮箱
+
+  phone         String?   @unique
+  // 手机号
+
+  password      String
+  // bcrypt加密密码
+
+  avatar        String?
+  // 头像
+
+  role          String    @default("USER")
+  // 当前角色
+  // USER
+  // ADMIN
+
+  status        Int       @default(1)
+  // 1 正常
+  // 0 禁用
+
+  lastLoginAt   DateTime?
+  // 最后登录时间
+
+  createdAt     DateTime  @default(now())
+  // 创建时间
+
+  updatedAt     DateTime  @updatedAt
+  // 更新时间
+
+  deletedAt     DateTime?
+  // 软删除时间
+
+  orders        Order[]
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  price       Float    // ✅ 修复点
-  stock       Int      @default(0)
-  status      Int      @default(1)
-  // 1: 上架
-  // 0: 下架
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  id              Int       @id @default(autoincrement())
+
+  name            String
+  // 商品名称
+
+  subtitle        String?
+  // 商品副标题
+
+  description     String?
+  // 商品详情
+
+  cover           String?
+  // 商品封面
+
+  price           Float
+  // 当前售价
+
+  originalPrice   Float?
+  // 原价
+
+  costPrice       Float?
+  // 成本价（后台使用）
+
+  stock           Int       @default(0)
+  // 库存
+
+  sales           Int       @default(0)
+  // 销量
+
+  status          Int       @default(1)
+  // 1 上架
+  // 0 下架
+
+  sort            Int       @default(0)
+  // 排序
+
+  createdAt       DateTime  @default(now())
+
+  updatedAt       DateTime  @updatedAt
+
+  deletedAt       DateTime?
+
+  orderItems      OrderItem[]
+
   @@index([status])
+
   @@index([createdAt])
+}
+
+model Order {
+  id                Int       @id @default(autoincrement())
+
+  orderNo           String    @unique
+  // 订单号
+
+  userId            Int
+  // 用户ID
+
+  totalAmount       Float
+  // 商品总金额
+
+  discountAmount    Float     @default(0)
+  // 优惠金额
+
+  payAmount         Float
+  // 实付金额
+
+  remark            String?
+  // 用户备注
+
+  status            Int       @default(0)
+  // 订单状态
+  // 0 待支付
+  // 1 已支付
+  // 2 已完成
+  // 3 已取消
+
+  payStatus         Int       @default(0)
+  // 支付状态
+  // 0 未支付
+  // 1 已支付
+  // 2 已退款
+
+  refundStatus      Int       @default(0)
+  // 退款状态
+  // 0 无退款
+  // 1 申请退款
+  // 2 已退款
+
+  deliveryStatus    Int       @default(0)
+  // 物流状态
+  // 0 未发货
+  // 1 已发货
+  // 2 已签收
+
+  receiverName      String?
+  // 收货人
+
+  receiverPhone     String?
+  // 收货手机号
+
+  receiverAddress   String?
+  // 收货地址
+
+  expressCompany    String?
+  // 快递公司
+
+  expressNo         String?
+  // 快递单号
+
+  payTime           DateTime?
+  // 支付时间
+
+  deliveryTime      DateTime?
+  // 发货时间
+
+  finishTime        DateTime?
+  // 完成时间
+
+  createdAt         DateTime @default(now())
+
+  updatedAt         DateTime @updatedAt
+
+  deletedAt         DateTime?
+
+  user              User @relation(fields: [userId], references: [id])
+
+  items             OrderItem[]
+
+  @@index([orderNo])
+
+  @@index([userId])
+
+  @@index([status])
+
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id               Int       @id @default(autoincrement())
+
+  orderId          Int
+  // 所属订单
+
+  productId        Int
+  // 商品ID
+
+  productName      String
+  // 下单时商品名快照
+
+  productPrice     Float
+  // 下单时价格快照
+
+  quantity         Int
+  // 数量
+
+  subtotalAmount   Float
+  // 小计金额
+
+  createdAt        DateTime @default(now())
+
+  order            Order @relation(fields:[orderId],references:[id])
+
+  product          Product @relation(fields:[productId],references:[id])
+
+  @@index([orderId])
+
+  @@index([productId])
 }
