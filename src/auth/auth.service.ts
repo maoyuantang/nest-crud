@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { BusinessException } from '../common/exceptions/business.exception';
+import { ErrorCode } from '../common/constants/error-code';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +23,7 @@ export class AuthService {
     });
 
     if (existUser) {
-      throw new BadRequestException('邮箱已存在');
+      throw new BusinessException(ErrorCode.LOGIN_FAILED, '邮箱已存在');
     }
 
     // 加密密码
@@ -51,12 +53,12 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('邮箱或密码错误');
+      throw new BusinessException(ErrorCode.LOGIN_FAILED, '邮箱或密码错误');
     }
     const isMatch = await bcrypt.compare(dto.password, user.password);
 
     if (!isMatch) {
-      throw new BadRequestException('邮箱或密码错误');
+      throw new BusinessException(ErrorCode.LOGIN_FAILED, '邮箱或密码错误');
     }
 
     const token = await this.jwtService.signAsync({

@@ -6,6 +6,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { PrismaService } from '../prisma/prisma.service'; // 之前我们直接在这里实例化 PrismaClient，现在改为通过依赖注入使用 PrismaService
+import { BusinessException } from '../common/exceptions/business.exception';
+import { ErrorCode } from '../common/constants/error-code';
 
 @Injectable()
 export class UsersService {
@@ -57,7 +59,7 @@ export class UsersService {
       },
     });
     if (!user) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`);
+      throw new BusinessException(ErrorCode.NOT_FOUND, `用户 ID ${id} 不存在`);
     }
     return user;
   }
